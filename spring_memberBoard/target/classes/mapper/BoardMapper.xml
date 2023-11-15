@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.spring_memberBoard.dao.BoardDao">
+
+	<select id="getMaxBno">
+		SELECT NVL(MAX(BNO), 0) FROM BOARDS
+	</select>
+	
+	<insert id="insertBoard">
+		INSERT INTO BOARDS(BNO, BWRITER, BTITLE, BCONTENTS, BHITS, BDATE, BFILENAME, BSTATE) 
+		VALUES(#{board.bno }, #{board.bwriter }, #{board.btitle} , #{board.bcontents }, 0, SYSDATE, #{board.bfilename }, '1')
+	</insert>
+	
+	<select id="selectBoard" resultType="com.spring_memberBoard.dto.Board" parameterType="int">
+		SELECT * FROM BOARDS WHERE BNO = #{bno}
+	</select>
+	
+	<update id="updatebhits" parameterType="int">
+		UPDATE BOARDS SET BHITS = BHITS + 1 WHERE BNO = #{bno}
+	</update>
+	
+	<!-- 
+	<select id="selectBoardList">
+		SELECT * FROM BOARDS WHERE BSTATE = '1' ORDER BY BDATE DESC
+	</select>
+	 -->
+  	
+  	<select id="selectBoardList_map" resultType="hashmap">
+  		SELECT BO.*, NVL(RE.RECOUNT, 0) AS RECOUNT
+		FROM BOARDS BO
+    		LEFT OUTER JOIN (SELECT REBNO, COUNT(REBNO) AS RECOUNT
+                     FROM REPLYS
+                     WHERE RESTATE = '1'
+                     GROUP BY REBNO) RE
+   		 	ON BO.BNO = RE.REBNO
+		WHERE BO.BSTATE = '1'
+		ORDER BY BO.BDATE DESC
+  	</select>
+  	
+  	
+</mapper>

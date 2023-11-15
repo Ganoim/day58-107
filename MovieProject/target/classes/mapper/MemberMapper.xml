@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.MovieProject.Dao.MemberDao">
+
+	<select id="selectMemberInfo" resultType="com.MovieProject.Dto.Member">
+		SELECT * FROM MEMBERS WHERE MID = #{id}
+	</select>
+	
+	<insert id="insertMember_kakao">
+		INSERT INTO MEMBERS(MID, MPW, MNAME, MEMAIL, MDATE, MPROFILE, MSTATE)
+		VALUES( #{mid}, 'kakaoAccount', #{mname}, #{memail}, SYSDATE, #{mprofile}, 'YK' )
+	</insert>
+	
+	<insert id="insertJoin">
+		INSERT INTO MEMBERS(MID, MPW, MNAME, MEMAIL, MDATE, MPROFILE, MSTATE)
+		VALUES( #{mid}, #{mpw}, #{mname}, #{memail}, SYSDATE, #{mprofile}, 'YC' )
+	</insert>
+	
+	<select id="selectLogin" resultType="com.MovieProject.Dto.Member">
+		SELECT * FROM MEMBERS WHERE MID = #{mid} AND MPW = #{mpw}
+	</select>
+	
+	<select id="selectMemberIdCheck">
+		SELECT MID FROM MEMBERS WHERE MID = #{inputId}
+	</select>
+	
+	<select id="selectReserveList" resultType="hashmap">
+		SELECT MV.MVCODE, MV.MVTITLE, MV.MVPOSTER, TH.THNAME, RE.RECODE, RE.SCHALL,
+		TO_CHAR(RE.SCDATE, 'YYYY-MM-DD HH24:MI') AS SCDATE, RE.REDATE
+		FROM RESERVES RE INNER JOIN MOVIES MV ON RE.MVCODE = MV.MVCODE
+			 			 INNER JOIN THEATERS TH ON RE.THCODE = TH.THCODE
+		WHERE RE.MID = #{loginId}
+		ORDER BY RE.SCDATE DESC
+		
+	</select>
+	
+	<delete id="deleteCancelReserve">
+		DELETE FROM RESERVES WHERE RECODE = #{recode}
+	</delete>
+	
+</mapper>

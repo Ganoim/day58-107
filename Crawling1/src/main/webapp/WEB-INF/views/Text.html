@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>정렬</h1>
+    <select onchange="prdSort(this.value)">
+        <option value="price_desc">가격높은순</option>
+        <option value="price_asc">가격낮은순</option>
+    </select>
+		<table>
+			<thead>
+				<tr>
+					<th>쇼핑몰</th>
+					<th>상품이름</th>
+					<th>상품가격</th>
+				</tr>
+			</thead>
+			
+			<tbody>
+                <tr>
+                    <td>gmarket</td>
+                    <td>키보드</td>
+                    <td class="prdPrice">120000</td>
+                </tr>
+                <tr>
+                    <td>gmarket</td>
+                    <td>스피커</td>
+                    <td class="prdPrice">58000</td>
+				</tr>
+                <tr>
+                    <td>gmarket</td>
+					<td>모니터</td>
+					<td class="prdPrice">220000</td>
+				</tr>
+                <tr>
+                    <td>gmarket</td>
+                    <td>마우스</td>
+                    <td class="prdPrice">12000</td>
+				</tr>
+			</tbody>
+		</table>
+</body>
+    <script>
+        function prdSort(sortOption){
+            arr = [1, 2, 3, 4, 5];
+            arr.splice(3,1,10, 11, 12, 13);
+            console.log(arr);
+
+            console.log('정령기능 호출 - ' + sortOption);
+            let prdList = document.querySelectorAll('tbody>tr');
+            let prdList_arr = Array.from(prdList); //현재 출력중인 상품들 List 타입 -> Array 타입으로 변환 
+            // prdList_arr (120000), 58000, 220000, 12000
+
+            let prdSort = []; // 정렬 기준에 따라 상품을 저장할 배열
+            prdSort[0] = prdList_arr.shift(); // prdList_arr의 첫번째 값을 prdSort[0]으로 가져옴
+            //console.log(prdSort[0]); // prdSort[0] = 120000
+            //console.log(prdList_arr); // prdList_arr = 58000, 220000, 12000
+
+            for(let prd_arr of prdList_arr){
+                // arrInfo 가격 prdSOrt 가격 비교
+                let prdPrice_arr = Number(prd_arr.querySelector('.prdPrice').innerText); // Number - string을 숫자로
+                
+                let idx = -1;
+                for(let sortIdx in prdSort){ // let i = 0; i < prdSort.length; i++
+                    let prdPrice_sort = Number(prdSort[sortIdx].querySelector('.prdPrice').innerText);
+                    console.log(prdPrice_arr + " :: " + prdPrice_sort);
+                    // 정렬 옵션으로 비교 판병
+                    let sortCheck = false;
+
+                    switch(sortOption){
+                        case "price_desc": // 가격이 높은 순
+                            sortCheck = prdPrice_arr > prdPrice_sort;
+                            break;
+                        case "price_asc": // 가격이 낮은 순
+                            sortCheck = prdPrice_arr < prdPrice_sort;
+                            break;
+                    }
+
+                    if(sortCheck){
+                        idx = sortIdx;
+                        break;
+                    }
+
+                } // 내부 for문 종료
+
+                    if(idx > -1){
+                        prdSort.splice(idx, 0, prd_arr)
+                        /*
+                        arr = [1, 2, 3, 4, 5]
+                        arr.splice(3,1,10); -> (idx, 1개를지움, 넣을 값)
+                        arr = [1, 2, 3, 10, 5]
+                        arr.splice(3,0,10) => arr = [1, 2, 3, 10, 4, 5]
+                        */
+                    }else{
+                        prdSort.push(prd_arr);
+                    }
+            } // for문 종료
+
+            let tbodyTag = document.querySelector('tbody');
+            tbodyTag.innerHTML = "";
+            for(let item of prdSort){
+                tbodyTag.appendChild(item);
+            }
+
+        }
+
+    </script>
+
+
+</html>

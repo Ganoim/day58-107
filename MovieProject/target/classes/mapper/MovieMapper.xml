@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.MovieProject.Dao.MovieDao">
+	
+	<select id="selectMovieRank" resultType="mov">
+	
+		SELECT * 
+		FROM ( 
+			   SELECT MV.MVCODE, MV.MVTITLE, MV.MVDIRECTOR, MV.MVACTORS, MV.MVINFO, MV.MVGENRE, TO_CHAR(MV.MVOPEN, 'YYYY-MM-DD')
+			   		  AS MVOPEN, MV.MVPOSTER, MV.MVSTATE,
+			  	 	  NVL(RE.RECOUNT, 0) AS RECOUNT
+			   FROM MOVIES MV 
+     		 		LEFT OUTER JOIN ( 
+                       		  		 SELECT MVCODE, COUNT(MVCODE) AS RECOUNT
+                       		  		 FROM RESERVES
+                       		  		 GROUP BY MVCODE
+                      		 		) RE
+       		 		ON MV.MVCODE = RE.MVCODE
+			   WHERE MV.MVCODE IN ( SELECT MVCODE FROM SCHEDULES WHERE SCDATE > SYSDATE )
+			   ORDER BY RECOUNT DESC
+			   ) 
+		WHERE ROWNUM BETWEEN 1 AND 6
+		
+	</select>
+	
+	<select id="selectDetaiMovie" resultType="mov">
+		SELECT MVCODE, MVTITLE, MVDIRECTOR, MVACTORS, MVINFO, MVGENRE, TO_CHAR(MVOPEN, 'YYYY-MM-DD')
+			   		  AS MVOPEN, MVPOSTER, MVSTATE
+		FROM MOVIES 
+		WHERE MVCODE = #{mvcode}
+		
+	</select>
+	
+	<select id="selectMovieList" resultType="mov">
+	
+		SELECT MVCODE, MVTITLE, MVDIRECTOR, MVACTORS, MVINFO, MVGENRE, TO_CHAR(MVOPEN, 'YYYY-MM-DD')
+			   		  AS MVOPEN, MVPOSTER, MVSTATE
+		FROM MOVIES 
+		WHERE MVCODE IN (SELECT MVCODE 
+						 FROM SCHEDULES
+		 				 WHERE SCDATE > SYSDATE
+		 				 <if test="selThCode != 'ALL'">
+		 				 	AND THCODE = #{selThCode}
+		 				 </if>
+		 				 GROUP BY MVCODE)
+		ORDER BY MVOPEN DESC
+		
+	</select>
+	
+	<select id="selectTheaterList" resultType="com.MovieProject.Dto.Theater">
+		SELECT *
+		FROM THEATERS 
+		WHERE THCODE IN (SELECT THCODE 
+						 FROM SCHEDULES
+		 				 WHERE SCDATE > SYSDATE
+		 				 <if test="selMvcode != 'ALL'">
+		 				 	AND MVCODE = #{selMvcode}
+		 				 </if>
+		 				 GROUP BY THCODE)
+		ORDER BY THCODE		
+	</select>
+	
+	<select id="selectMovieList_json" resultType="mov">
+		SELECT MVCODE, MVTITLE, MVDIRECTOR, MVACTORS, MVINFO, MVGENRE, TO_CHAR(MVOPEN, 'YYYY-MM-DD')
+			   		  AS MVOPEN, MVPOSTER, MVSTATE
+		FROM MOVIES 
+		WHERE MVCODE IN (SELECT MVCODE 
+						 FROM SCHEDULES
+		 				 WHERE SCDATE > SYSDATE
+		 				 <if test="selThCode != 'ALL'">
+		 				 	AND THCODE = #{selThCode}
+		 				 </if>
+		 				 GROUP BY MVCODE)
+		ORDER BY MVOPEN DESC		
+	</select>
+	
+	<select id="selectSchduleDateList_json"  resultType="com.MovieProject.Dto.Schedule">
+		SELECT TO_CHAR(SCDATE, 'YYYY-MM-DD') AS SCDATE 
+		FROM SCHEDULES
+		WHERE SCDATE > SYSDATE AND MVCODE = #{mvcode} AND THCODE = #{thcode}
+		GROUP BY TO_CHAR(SCDATE, 'YYYY-MM-DD')
+		ORDER BY SCDATE
+		
+	</select>
+	
+	<select id="selectScTimeList_json" resultType="com.MovieProject.Dto.Schedule">
+		SELECT SCHALL, TO_CHAR(SCDATE, 'HH24:MI') AS SCDATE 
+		FROM SCHEDULES
+		WHERE MVCODE = #{mvcode} AND THCODE = #{thcode} AND TO_CHAR(SCDATE, 'YYYY-MM-DD') = #{scdate}
+		ORDER BY SCHALL, SCDATE		
+		
+	</select>
+	
+	<select id="selectMaxReCode" >
+		SELECT NVL(MAX(RECODE), 'RE00000')FROM RESERVES
+	</select>
+	
+	<insert id="insertRecode">
+		INSERT INTO RESERVES(RECODE, MID, MVCODE, THCODE, SCHALL, SCDATE, REDATE)
+		VALUES( #{recode}, #{mid}, #{mvcode}, #{thcode}, #{schall}, to_date(#{scdate}, 'YYYY-MM-DD HH24:MI'), SYSDATE )
+	</insert>
+	
+	<select id="selectMaxRvcode" >
+		SELECT NVL(MAX(RVCODE), 'RV00000')FROM REVIEWS
+	</select>
+	
+	<insert id="insertReview">
+		INSERT INTO REVIEWS(RVCODE, RECODE, MID, RVCOMMENT, RVDATE)
+		VALUES( #{rvcode}, #{recode}, #{mid}, #{rvcomment}, SYSDATE)
+	</insert>
+	
+	<select id="selectMovieReviewList" resultType="hashmap">
+		SELECT RV.RVCODE, RV.RVCOMMENT, RV.RVDATE, RV.MID, MEM.MPROFILE, MEM.MSTATE
+		FROM REVIEWS RV
+     		INNER JOIN MEMBERS MEM
+     		ON RV.MID = MEM.MID
+		WHERE RECODE IN ( SELECT RECODE
+                  		  FROM RESERVES
+                  		  WHERE MVCODE = #{mvcode} )
+	</select>
+		
+	
+	
+</mapper>
+
+
+
